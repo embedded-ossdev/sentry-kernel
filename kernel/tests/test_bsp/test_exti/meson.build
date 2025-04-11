@@ -1,6 +1,33 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
+
+
+test_bsp_exti_c = executable(
+    'test_bsp_exti_c',
+    sources: [
+        files(
+            'test_exti.c',
+            join_paths(meson.project_source_root(), 'kernel/src/drivers/exti/stm32-exti.c'),
+        ),
+        exti_h, stm32_exti_dtsgen_h, stm32_exti_dtsgen_c,
+        sentry_header_set_config.sources(),
+    ],
+    include_directories: kernel_inc,
+    c_args: [
+        '-I'+join_paths(meson.project_build_root(), 'kernel/src/drivers/exti'),
+        global_build_args,
+        '-DTEST_MODE=1',
+    ],
+    dependencies: [ cmocka_dep, cmsis_dep ],
+    native: true,
+)
+
+test('exti-c',
+     test_bsp_exti_c,
+     env: nomalloc,
+     suite: 'ut-bsp')
+
 test_bsp_exti = executable(
     'test_bsp_exti',
     sources: [
