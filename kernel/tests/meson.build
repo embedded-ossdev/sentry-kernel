@@ -13,6 +13,33 @@ gtest_main = dependency('gmock_main', version: '>=1.13.0',
                          fallback : ['gtest', 'gmock_main_dep'],
                          native: true)
 
+cmocka_proj = subproject('cmocka',
+                         default_options: 'c_args=-w'
+)
+
+cmocka_dep = cmocka_proj.get_variable('cmocka_native_dep')
+
+# testing cmocka itself, with a generic test case
+test_cmocka = executable(
+    'test_cmocka',
+    sources: [
+        files('cmocka.c')
+    ],
+    override_options: ['c_std=gnu11'],
+    c_args: [
+        global_build_args,
+        '-DTEST_MODE=1',
+    ],
+    dependencies: [ cmocka_dep ],
+    native: true,
+)
+
+test('cmocka-exec',
+     test_cmocka,
+     env: nomalloc,
+     suite: 'cmocka')
+
+subdir('mock')
 subdir('test_utils')
 subdir('test_bsp')
 subdir('test_managers')
