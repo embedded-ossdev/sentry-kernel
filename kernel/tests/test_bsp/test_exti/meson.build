@@ -19,7 +19,7 @@ test_bsp_exti_c = executable(
         global_build_args,
         '-DTEST_MODE=1',
     ],
-    dependencies: [ cmocka_dep, cmsis_dep ],
+    dependencies: [ cmocka_dep, cmsis_dep, mock_lib_dep ],
     native: true,
 )
 

@@ -39,6 +39,7 @@ test('cmocka-exec',
      env: nomalloc,
      suite: 'cmocka')
 
+subdir('mock')
 subdir('test_utils')
 subdir('test_bsp')
 subdir('test_managers')
