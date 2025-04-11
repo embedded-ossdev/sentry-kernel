@@ -13,6 +13,9 @@ gtest_main = dependency('gmock_main', version: '>=1.13.0',
                          fallback : ['gtest', 'gmock_main_dep'],
                          native: true)
 
+cmocka_proj = subproject('cmocka')
+cmocka_dep = cmocka_proj.get_variable('cmocka_native_dep')
+
 subdir('test_utils')
 subdir('test_bsp')
 subdir('test_managers')
