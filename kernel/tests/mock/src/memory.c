@@ -9,7 +9,6 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sentry/arch/asm-cortex-m/layout.h>
 #include <sentry/ktypes.h>
 
 #define MMU_PAGE_SIZE 4096UL
