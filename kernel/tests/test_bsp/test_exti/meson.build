@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2025 Outpost OSS Team
 # SPDX-License-Identifier: Apache-2.0
-
 
 
 test_bsp_exti_c = executable(
