@@ -4,26 +4,20 @@
 test_printk = executable(
     'test_printk',
     sources: [
-        files(
-            'test_printk.cpp',
-            join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log.c'),
-            join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log_lexer.c'),
-        ),
+        files('test_printk.c'),
         sentry_header_set_config.sources(),
+        join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log.c'),
+        join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log_lexer.c'),
     ],
     include_directories: kernel_inc,
-    override_options: ['cpp_std=gnu++20'],
-    cpp_args: [
-        '-DTEST_MODE=1',
-        '-DCONFIG_BUILD_TARGET_DEBUG=1',
-    ],
     c_args: [
         '-DTEST_MODE=1',
+        '-Wno-pedantic',
         '-DCONFIG_BUILD_TARGET_DEBUG=1',
+        '-Wno-format-truncation', # required as %s, NULL is tested
         '-include', join_paths(fs.parent(kconfig_h),fs.name(kconfig_h)),
     ],
-    dependencies: [gtest_main],
-    link_language: 'cpp',
+    dependencies: [cmocka_dep, mock_lib_dep ],
     native: true,
 )
 
