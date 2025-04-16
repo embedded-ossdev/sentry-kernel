@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::systypes::shm::ShmInfo;
-use crate::systypes::{ExchangeHeader, Status};
+use crate::systypes::{ExchangeHeader, ShmHandle, Status};
 use core::ptr::*;
 
 const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
@@ -64,6 +64,48 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
                 addr_of!(*self) as *const u8,
                 EXCHANGE_AREA.as_mut_ptr(),
                 core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+            );
+        }
+        Ok(Status::Ok)
+    }
+
+    #[cfg(not(test))]
+    #[allow(static_mut_refs)]
+    fn to_kernel(&self) -> Result<Status, Status> {
+        Err(Status::Invalid)
+    }
+}
+
+/// SentryExchangeable trait implementation for ShmHandle.
+/// ShmHandle is a another structure which is returned by the kernel to the
+/// userspace in order to delivers SHM handle to a given
+/// task.
+///
+/// In test mode only, this structure can be written back to the Exchange Area.
+/// In production mode, the application can't write such a content to the exchange
+/// as the kernel as strictly no use of it.
+///
+impl SentryExchangeable for crate::systypes::ShmHandle {
+    #[allow(static_mut_refs)]
+    fn from_kernel(&mut self) -> Result<Status, Status> {
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                EXCHANGE_AREA.as_ptr() as *const u32,
+                addr_of_mut!(*self) as *mut u32,
+                core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
+            );
+        }
+        Ok(Status::Ok)
+    }
+
+    #[cfg(test)]
+    #[allow(static_mut_refs)]
+    fn to_kernel(&self) -> Result<Status, Status> {
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                addr_of!(*self) as *const u8,
+                EXCHANGE_AREA.as_mut_ptr(),
+                core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
@@ -320,6 +362,15 @@ mod tests {
             len: 0,
             perms: 0,
         };
+        let _ = src.to_kernel();
+        let _ = dst.from_kernel();
+        assert_eq!(src, dst);
+    }
+
+    #[test]
+    fn back_to_back_shmhandle() {
+        let src = 2;
+        let mut dst = 2;
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
         assert_eq!(src, dst);
