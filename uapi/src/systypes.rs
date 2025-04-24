@@ -7,7 +7,6 @@
 /// Most important enum is `Syscall`, which defines the list of available
 /// syscalls and sets their identifier/number.
 ///
-
 /// This macro takes an enum and implements fallible conversion from a u8
 /// exhaustively, as required by the SVC Handler.
 ///
@@ -621,8 +620,6 @@ mirror_enum! {
 /// a [`Status::Ok`] value.
 /// The kernel return data for a single event type at a time, store in event field,
 /// while wait_for_event() allows waiting for multiple event at a time.
-
-//#[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ExchangeHeader {

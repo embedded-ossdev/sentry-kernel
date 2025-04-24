@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+#![allow(static_mut_refs)]
+#![allow(clippy::wrong_self_convention)]
 use crate::systypes::shm::ShmInfo;
-use crate::systypes::{ExchangeHeader, Status};
+use crate::systypes::{ExchangeHeader, ShmHandle, Status};
 use core::ptr::*;
 
 const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
@@ -76,6 +78,48 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
     }
 }
 
+/// SentryExchangeable trait implementation for ShmHandle.
+/// ShmHandle is a another structure which is returned by the kernel to the
+/// userspace in order to delivers SHM handle to a given
+/// task.
+///
+/// In test mode only, this structure can be written back to the Exchange Area.
+/// In production mode, the application can't write such a content to the exchange
+/// as the kernel as strictly no use of it.
+///
+impl SentryExchangeable for crate::systypes::ShmHandle {
+    #[allow(static_mut_refs)]
+    fn from_kernel(&mut self) -> Result<Status, Status> {
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                EXCHANGE_AREA.as_ptr() as *const u32,
+                &raw mut *self,
+                core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
+            );
+        }
+        Ok(Status::Ok)
+    }
+
+    #[cfg(test)]
+    #[allow(static_mut_refs)]
+    fn to_kernel(&self) -> Result<Status, Status> {
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                addr_of!(*self) as *const u8,
+                EXCHANGE_AREA.as_mut_ptr(),
+                core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
+            );
+        }
+        Ok(Status::Ok)
+    }
+
+    #[cfg(not(test))]
+    #[allow(static_mut_refs)]
+    fn to_kernel(&self) -> Result<Status, Status> {
+        Err(Status::Invalid)
+    }
+}
+
 // from-exchange related capacity to Exchang header
 impl ExchangeHeader {
     unsafe fn from_addr(self, address: usize) -> &'static Self {
@@ -86,7 +130,8 @@ impl ExchangeHeader {
     unsafe fn from_addr_mut(self, address: usize) -> &'static mut Self {
         &mut *(address as *mut Self)
     }
-
+    /// # Safety
+    /// To be documented
     pub unsafe fn from_exchange(self) -> &'static Self {
         self.from_addr(EXCHANGE_AREA.as_ptr() as usize)
     }
@@ -148,7 +193,7 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
             return Err(Status::Invalid);
         }
         self.header = *k_header;
-        let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
+        let header_len = core::mem::size_of::<ExchangeHeader>();
         // be sure we have enough size in exchange zone
         if header_len + usize::from(self.header.length) > EXCHANGE_AREA_LEN {
             return Err(Status::Invalid);
@@ -166,7 +211,7 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
             let data_ptr: *const u8 = (EXCHANGE_AREA.as_ptr() as usize + header_len) as *const u8;
             let data_slice = core::slice::from_raw_parts(data_ptr, self.header.length.into());
             // the destination slice must have enough space to get back data from the exchange zone
-            if data_slice.iter().count() > self.data.len() {
+            if data_slice.len() > self.data.len() {
                 return Err(Status::Invalid);
             }
             for (dst, src) in self.data.iter_mut().zip(data_slice.iter()) {
@@ -320,6 +365,15 @@ mod tests {
             len: 0,
             perms: 0,
         };
+        let _ = src.to_kernel();
+        let _ = dst.from_kernel();
+        assert_eq!(src, dst);
+    }
+
+    #[test]
+    fn back_to_back_shmhandle() {
+        let src = 2;
+        let mut dst = 2;
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
         assert_eq!(src, dst);

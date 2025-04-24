@@ -82,7 +82,6 @@ test(
         '--',
         '-Dwarnings',
     ],
-    should_fail: true,
     suite: 'uapi',
 )
 endif # cargo clippy found
