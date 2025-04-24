@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2025 Outpost OSS Team
+// SPDX-License-Identifier: Apache-2.0
+
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
