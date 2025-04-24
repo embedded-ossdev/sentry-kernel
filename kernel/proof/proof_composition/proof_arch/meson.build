@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2025 H2Lab
 # SPDX-License-Identifier: Apache-2.0
 
 # specify an ELF including framaC main. This forges the correct flags in the
@@ -14,7 +15,7 @@ framac_stub_arch_elf = executable(
     name_suffix: 'elf',
     sources: [ framac_wp_arch_stub_entrypoint ],
     include_directories: kernel_inc,
-    dependencies: [ sentry_arch_dep, external_deps],
+    dependencies: [ sentry_arch_dep, external_deps, proof_lib_dep ],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,

@@ -6,6 +6,7 @@ frama_c = find_program('frama-c', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
 cvc4 = find_program('cvc4', 'cvc4-1.7', required: true, native: true)
 
+
 # Part 1: analysis from kernel entrypoint. These targets check the call graph from
 # the kernel entrypoint itelf, analysing the overall init sequence of the kernel.
 # Here, all the probing, platform initialization, etc. is executed through the
@@ -41,6 +42,10 @@ framac_dep = custom_target(
 )
 
 framac_dep_tree = meson.current_build_dir() / 'framac.dep.p'
+
+# To avoid duplication between formal proof tests, a dedicated lib is written
+# to hold various Frama-C related high level tooling
+subdir('libproof')
 
 # Only kernel C sources here (not headers)
 kernel_sources = [

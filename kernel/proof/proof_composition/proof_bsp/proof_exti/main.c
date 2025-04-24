@@ -1,22 +1,23 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-FileCopyrightText: 2025 H2Lab
 // SPDX-License-Identifier: Apache-2.0
 
 #include <inttypes.h>
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
 #include <bsp/drivers/exti/exti.h>
-#include "../framac_tools.h"
+#include <framac_entropy.h>
 
 
 int main(void)
 {
-    uint8_t it_or_ev = Frama_C_interval_8(0, 42);
+    uint8_t it_or_ev = Frama_C_interval_u8(0, 42);
 
     /* Initialize device with randomness (over-approximation of
        all content possibilities, avoid first device access ioread32()
        uninitialized-read red alarms.
     */
-    memset((void*)EXTI_BASE_ADDR, Frama_C_entropy_source_32, 0x20);
+    memset((void*)EXTI_BASE_ADDR, Frama_C_entropy_source_u32, 0x20);
 
     exti_probe();
     /*

@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2025 H2Lab
 # SPDX-License-Identifier: Apache-2.0
 
 test_name = 'frama-c-wp-bsp-exti'
@@ -19,7 +20,7 @@ framac_bsp_exti_stub_elf = executable(
     ],
     include_directories: kernel_inc,
     dependencies: [ external_deps],
-    c_args: [ target_arch_args, global_build_args ],
+    c_args: [ target_arch_args, global_build_args, proof_lib_dep ],
     install: false,
     build_by_default: false,
 )
