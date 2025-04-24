@@ -236,9 +236,11 @@ pub extern "C" fn __sys_dma_resume_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_resume_stream(dmah)
 }
 
+/// # Safety
+/// Conditions for code::slice::from_raw_parts are not violated
 /// C interface to [`crate::copy_to_kernel`] Rust implementation
 #[no_mangle]
-pub extern "C" fn copy_to_kernel(from: *mut u8, length: usize) -> Status {
+pub unsafe extern "C" fn copy_to_kernel(from: *mut u8, length: usize) -> Status {
     let u8_slice: &[u8] = unsafe { core::slice::from_raw_parts(from, length) };
     match exchange::copy_to_kernel(&u8_slice) {
         Ok(_) => Status::Ok,
@@ -246,9 +248,11 @@ pub extern "C" fn copy_to_kernel(from: *mut u8, length: usize) -> Status {
     }
 }
 
+/// # Safety
+/// Conditions for code::slice::from_raw_parts are not violated
 /// C interface to [`crate::copy_from_kernel`] Rust implementation
 #[no_mangle]
-pub extern "C" fn copy_from_kernel(to: *mut u8, length: usize) -> Status {
+pub unsafe extern "C" fn copy_from_kernel(to: *mut u8, length: usize) -> Status {
     let mut u8_slice: &mut [u8] =
         unsafe { core::slice::from_raw_parts_mut(to, length) as &mut [u8] };
     match exchange::copy_from_kernel(&mut u8_slice) {

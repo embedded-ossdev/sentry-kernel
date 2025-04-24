@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+#![allow(static_mut_refs)]
+#![allow(clippy::wrong_self_convention)]
 use crate::systypes::shm::ShmInfo;
 use crate::systypes::{ExchangeHeader, ShmHandle, Status};
 use core::ptr::*;
@@ -91,7 +93,7 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 EXCHANGE_AREA.as_ptr() as *const u32,
-                addr_of_mut!(*self) as *mut u32,
+                &raw mut *self,
                 core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
             );
         }
@@ -128,7 +130,8 @@ impl ExchangeHeader {
     unsafe fn from_addr_mut(self, address: usize) -> &'static mut Self {
         &mut *(address as *mut Self)
     }
-
+    /// # Safety
+    /// To be documented
     pub unsafe fn from_exchange(self) -> &'static Self {
         self.from_addr(EXCHANGE_AREA.as_ptr() as usize)
     }
@@ -190,7 +193,7 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
             return Err(Status::Invalid);
         }
         self.header = *k_header;
-        let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
+        let header_len = core::mem::size_of::<ExchangeHeader>();
         // be sure we have enough size in exchange zone
         if header_len + usize::from(self.header.length) > EXCHANGE_AREA_LEN {
             return Err(Status::Invalid);
@@ -208,7 +211,7 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
             let data_ptr: *const u8 = (EXCHANGE_AREA.as_ptr() as usize + header_len) as *const u8;
             let data_slice = core::slice::from_raw_parts(data_ptr, self.header.length.into());
             // the destination slice must have enough space to get back data from the exchange zone
-            if data_slice.iter().count() > self.data.len() {
+            if data_slice.len() > self.data.len() {
                 return Err(Status::Invalid);
             }
             for (dst, src) in self.data.iter_mut().zip(data_slice.iter()) {
