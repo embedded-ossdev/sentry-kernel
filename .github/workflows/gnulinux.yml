@@ -109,9 +109,9 @@ jobs:
           echo "compiler=$toolchain_compiler" >> $GITHUB_ENV
           echo "compiler_version=$toolchain_version" >> $GITHUB_ENV
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: stable
+          toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: Setup C toolchain
@@ -179,9 +179,9 @@ jobs:
           ref: '12.3.Rel1'
           workspace: $GITHUB_WORKSPACE
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: stable
+          toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: deploy local deps
@@ -236,9 +236,9 @@ jobs:
         with:
           packages: 'pandoc,dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: stable
+          toolchain: nightly
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
