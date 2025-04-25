@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-FileCopyrightText: 2025 ANSSI
 // SPDX-License-Identifier: Apache-2.0
 
 #![allow(static_mut_refs)]
@@ -123,22 +124,22 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
 // from-exchange related capacity to Exchang header
 impl ExchangeHeader {
     unsafe fn from_addr(self, address: usize) -> &'static Self {
-        &*(address as *const Self)
+        unsafe { &*(address as *const Self) }
     }
 
     #[cfg(test)]
     unsafe fn from_addr_mut(self, address: usize) -> &'static mut Self {
-        &mut *(address as *mut Self)
+        unsafe { &mut *(address as *mut Self) }
     }
     /// # Safety
     /// To be documented
     pub unsafe fn from_exchange(self) -> &'static Self {
-        self.from_addr(EXCHANGE_AREA.as_ptr() as usize)
+        unsafe { self.from_addr(EXCHANGE_AREA.as_ptr() as usize) }
     }
 
     #[cfg(test)]
     pub unsafe fn from_exchange_mut(self) -> &'static mut Self {
-        self.from_addr_mut(EXCHANGE_AREA.as_mut_ptr() as usize)
+        unsafe { self.from_addr_mut(EXCHANGE_AREA.as_mut_ptr() as usize) }
     }
 }
 
