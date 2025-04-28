@@ -207,48 +207,36 @@ impl ExchangeHeader {
 impl SentryExchangeable for crate::systypes::Event<'_> {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
-        // declare exchange as header first
-        // Miri fix : handle the case where None is returned
-        //let _k_header: &ExchangeHeader =
-        //    unsafe { ExchangeHeader::from_exchange(self.header) }.ok_or(Status::Invalid)?;
-        let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to::<ExchangeHeader>() };
-        let k_header = aligned.first().ok_or(Status::Invalid)?;
-        if !k_header.is_valid() {
+        use core::ptr;
+
+        unsafe {
+            // Read the header from the exchange area
+            // If the header is not aligned, it will be a bit slower
+            // but it will not crash anyway.
+            let header = ptr::read_unaligned(EXCHANGE_AREA.as_ptr() as *const ExchangeHeader);
+            self.header = header;
+        }
+
+        if !self.header.is_valid() {
             return Err(Status::Invalid);
         }
-        //self.header = *k_header;
-        self.header.peer = k_header.peer;
-        self.header.magic = k_header.magic;
-        self.header.length = k_header.length;
-        self.header.event = k_header.event;
+
         let header_len = core::mem::size_of::<ExchangeHeader>();
-        // be sure we have enough size in exchange zone
         if header_len + usize::from(self.header.length) > EXCHANGE_AREA_LEN {
             return Err(Status::Invalid);
         }
-        if usize::from(self.header.length) > EXCHANGE_AREA_LEN - header_len {
-            // the length field is set by the kernel and thus, should not be invalid
-            // yet we check that there is no overflow as we use an unsafe block to get
-            // back from the exchange area
-            return Err(Status::Invalid);
-        }
-        // copy the amount of data in data slice using the header length info.
-        // Note: here we do not do any semantic related content check (i.e. data length or content
-        // based on the exchange type) but we let the kernel ensuring the correlation instead.
-        unsafe {
-            //let data_ptr: *const u8 = (EXCHANGE_AREA.as_ptr() as usize + header_len) as *const u8;
-            // Miri fix: integer-to-pointer cast… Miri might miss pointer bugs in this program.
-            let data_ptr: *const u8 = EXCHANGE_AREA.as_ptr().add(header_len);
 
+        unsafe {
+            let data_ptr = EXCHANGE_AREA.as_ptr().add(header_len);
             let data_slice = core::slice::from_raw_parts(data_ptr, self.header.length.into());
-            // the destination slice must have enough space to get back data from the exchange zone
             if data_slice.len() > self.data.len() {
                 return Err(Status::Invalid);
             }
             for (dst, src) in self.data.iter_mut().zip(data_slice.iter()) {
-                *dst = *src
+                *dst = *src;
             }
         }
+
         Ok(Status::Ok)
     }
 
@@ -271,35 +259,27 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
     #[cfg(test)]
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status, Status> {
-        // copy exchange header to exchange zone
-        //let _k_header: &mut ExchangeHeader =
-        //    unsafe { ExchangeHeader::from_exchange_mut(self.header) };
-        let (_, aligned, _) = unsafe { (&mut EXCHANGE_AREA).align_to_mut::<ExchangeHeader>() };
-        let k_header = aligned.first_mut().ok_or(Status::Invalid)?;
-        let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
-        k_header.peer = self.header.peer;
-        k_header.magic = self.header.magic;
-        k_header.length = self.header.length;
-        k_header.event = self.header.event;
+        use core::ptr;
+
         if usize::from(self.header.length) > self.data.len() {
             return Err(Status::Invalid);
         }
-        // now append data to header in exchange zone
+
         unsafe {
-            //let data_addr = EXCHANGE_AREA.as_ptr() as usize + header_len;
-            //let data_ptr =
-            //    data_addr as *mut [u8; EXCHANGE_AREA_LEN - core::mem::size_of::<ExchangeHeader>()];
-            //core::ptr::copy_nonoverlapping(
-            //    self.data.as_ptr(),
-            //    data_ptr as *mut u8,
-            //    self.header.length.into(),
-            //);
-            // Miri fix: the code above do not respect the alignment & borrowing security of the
-            // data_ptr, leading to a miri panic, proposing this:
+            // Writing the header
+            // The header is not aligned, so we use write_unaligned
+            ptr::write_unaligned(
+                EXCHANGE_AREA.as_mut_ptr() as *mut ExchangeHeader,
+                self.header,
+            );
+
+            // Then writing the data
+            let header_len = core::mem::size_of::<ExchangeHeader>();
             let data_addr = EXCHANGE_AREA.as_mut_ptr().add(header_len);
             let dst_slice = core::slice::from_raw_parts_mut(data_addr, self.header.length.into());
             dst_slice.copy_from_slice(&self.data[..self.header.length.into()]);
         }
+
         Ok(Status::Ok)
     }
 }
