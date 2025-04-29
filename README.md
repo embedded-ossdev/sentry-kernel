@@ -8,13 +8,13 @@ SPDX-License-Identifier: Apache-2.0
 # About
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9667/badge)](https://www.bestpractices.dev/projects/9667)
-![GNU/Linux build](https://github.com/outpost-os/sentry-kernel/actions/workflows/gnulinux.yml/badge.svg)
-![MacOS X build](https://github.com/outpost-os/sentry-kernel/actions/workflows/macos.yml/badge.svg)
-![Frama-C RTE Analysis](https://github.com/outpost-os/sentry-kernel/actions/workflows/proof.yml/badge.svg)
+![GNU/Linux build](https://github.com/camelot-os/sentry-kernel/actions/workflows/gnulinux.yml/badge.svg)
+![MacOS X build](https://github.com/camelot-os/sentry-kernel/actions/workflows/macos.yml/badge.svg)
+![Frama-C RTE Analysis](https://github.com/camelot-os/sentry-kernel/actions/workflows/proof.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/outpost-sentry/badge/?version=latest)](https://outpost-sentry.readthedocs.io/en/latest/?badge=latest)
 ![GitHub Release](https://img.shields.io/github/v/release/outpost-os/sentry-kernel)
 ![GitHub License](https://img.shields.io/github/license/outpost-os/sentry-kernel)
-[![REUSE status](https://api.reuse.software/badge/github.com/outpost-os/sentry-kernel)](https://api.reuse.software/info/github.com/outpost-os/sentry-kernel)
+[![REUSE status](https://api.reuse.software/badge/github.com/camelot-os/sentry-kernel)](https://api.reuse.software/info/github.com/camelot-os/sentry-kernel)
 
 The Sentry kernel is a high security level micro-kernel implementation made for high security embedded systems that include micro-controllers in association with dedicated Secure Element component for security cryptographic functions.
 
