@@ -74,7 +74,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref:  'main'
-          repository: 'outpost-os/meson-cross-files'
+          repository: 'camelot-os/meson-cross-files'
           path: crossfiles
       - name: Deploy cross-files
         run: |
@@ -83,7 +83,7 @@ jobs:
           echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
         shell: bash
       - name: install prerequisites pkg
-        uses: outpost-os/action-install-pkg@v1
+        uses: camelot-os/action-install-pkg@v1
         with:
           packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld,srecord'
       - name: Split compiler reference
@@ -102,7 +102,7 @@ jobs:
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: Setup C toolchain
-        uses: outpost-os/action-setup-compiler@v1
+        uses: camelot-os/action-setup-compiler@v1
         with:
           compiler: ${{ env.compiler }}
           triple: arm-none-eabi
@@ -115,7 +115,7 @@ jobs:
         run: |
           defconfig configs/${{matrix.config}}_defconfig
       - name: Meson Build
-        uses: outpost-os/action-meson@v1
+        uses: camelot-os/action-meson@v1
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
@@ -146,7 +146,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref:  'main'
-          repository: 'outpost-os/meson-cross-files'
+          repository: 'camelot-os/meson-cross-files'
           path: crossfiles
       - name: Deploy cross-files
         run: |
@@ -155,11 +155,11 @@ jobs:
           echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
         shell: bash
       - name: install curl pkg
-        uses: outpost-os/action-install-pkg@v1
+        uses: camelot-os/action-install-pkg@v1
         with:
           packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup compiler
-        uses: outpost-os/action-setup-compiler@v1
+        uses: camelot-os/action-setup-compiler@v1
         with:
           compiler: gcc
           triple: arm-none-eabi
@@ -178,7 +178,7 @@ jobs:
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Build
-        uses: outpost-os/action-meson@v1
+        uses: camelot-os/action-meson@v1
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "test"]'
@@ -210,7 +210,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref:  'main'
-          repository: 'outpost-os/meson-cross-files'
+          repository: 'camelot-os/meson-cross-files'
           path: crossfiles
       - name: Deploy cross-files
         run: |
@@ -219,7 +219,7 @@ jobs:
           echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
         shell: bash
       - name: install prerequisites pkg
-        uses: outpost-os/action-install-pkg@v1
+        uses: camelot-os/action-install-pkg@v1
         with:
           packages: 'pandoc,dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup Rust toolchain
@@ -233,7 +233,7 @@ jobs:
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Doc
-        uses: outpost-os/action-meson@v1
+        uses: camelot-os/action-meson@v1
         with:
           actions: '["prefetch", "setup"]'
           options: '-Dconfig=.config -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_doc=true -Dwith_uapi=false -Dwith_idle=false'

@@ -32,7 +32,7 @@ jobs:
           fetch-tags: true
           set-safe-directory: true
       - name: install prerequisites pkg
-        uses: outpost-os/action-install-pkg@v1
+        uses: camelot-os/action-install-pkg@v1
         with:
           packages: 'device-tree-compiler,curl,lld,graphviz,lsb-release,libglib2.0-dev-bin,python3,python3-pip,python3-venv'
       - name: Spawn and use python venv
@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref:  'main'
-          repository: 'outpost-os/meson-cross-files'
+          repository: 'camelot-os/meson-cross-files'
           path: crossfiles
       - name: Deploy cross-files
         run: |
@@ -58,7 +58,7 @@ jobs:
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: Setup C toolchain
-        uses: outpost-os/action-setup-compiler@v1
+        uses: camelot-os/action-setup-compiler@v1
         with:
           compiler: gcc
           triple: arm-none-eabi
@@ -70,7 +70,7 @@ jobs:
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
-        uses: outpost-os/action-meson@main
+        uses: camelot-os/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup"]'
