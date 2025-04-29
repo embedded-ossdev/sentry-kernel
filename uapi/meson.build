@@ -119,7 +119,7 @@ rustargs_template = files('rustargs.in')
 rustargs_file = configure_file(
     input: rustargs_template,
     output: '@BASENAME@',
-    command: [jinja_cli, '@INPUT@', '--define', 'rustargs', ' '.join(target_rustargs), '-o', '@OUTPUT@'],
+    command: [jinja_cli, '@INPUT@', '--define', 'rustargs', ' '.join(implicit_target_rustargs + target_rustargs), '-o', '@OUTPUT@'],
     install: true,
     install_dir: get_option('datadir') / 'cargo',
     install_tag: 'data',
