@@ -71,7 +71,6 @@ jobs:
           workspace: ${{ github.workspace }}
       - name: deploy local deps
         run: |
-          python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
           echo '$HOME/Library/Python/3.12/bin' >> $GITHUB_PATH
       - name: defconfig
