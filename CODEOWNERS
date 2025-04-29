@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2025 H2Lab Team
 # SPDX-License-Identifier: Apache-2.0
 
 # These owners will be the default owners for everything in
@@ -9,3 +9,5 @@ configs @florent-valette
 # tools are the subpart of meson and templates that allow generation of
 # kernel sources (headers, etc.) typically using jinja2 and json
 tools   @florent-valette
+# Rust UAPI is mostly supported
+uapi	@r3dlight
