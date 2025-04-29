@@ -9,10 +9,6 @@ hostcc.has_function('__builtin_ffsl')
 # no need to perturb malloc as we do not have malloc in kernel
 nomalloc = environment({'MALLOC_PERTURB_': '0'})
 
-gtest_main = dependency('gmock_main', version: '>=1.13.0',
-                         fallback : ['gtest', 'gmock_main_dep'],
-                         native: true)
-
 cmocka_proj = subproject('cmocka',
                          default_options: 'c_args=-w'
 )
