@@ -5,14 +5,51 @@ target_cpu = 'cortex-@0@'.format(kconfig_data.get_unquoted('CONFIG_ARCH_ARM_CORT
 target_has_fpu = kconfig_data.get('CONFIG_HAS_FPU', 0) == 1
 target_use_fpu = kconfig_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
 
+c_compiler = meson.get_compiler('c')
 
-compiler = meson.get_compiler('c')
 target_rust = kconfig_data.get_unquoted('CONFIG_RUSTC_TARGET')
 target_rustargs = [
-    '--target=' + target_rust,
     '-Ctarget-cpu='+ target_cpu,
-    '-Clinker=' + compiler.cmd_array()[0],
+    '-Clinker=' + c_compiler.cmd_array()[0],
 ]
+
+# Implicit rustargs are ones set from meson cross file
+# Those args do not need to be add to project args
+# But need to be exported for rust sdk.
+implicit_target_rustargs = []
+
+if with_uapi_opt
+    add_languages('rust', native: false, required: true)
+    rust_compiler = meson.get_compiler('rust')
+
+    # rustc target must be defined in cross file
+    # check consistency between `.config` selected target and used cross-file
+    rust_target_opt = '--target'
+    target_rust_cross_file = ''
+
+    # XXX:
+    #  Only --target is handled here
+    #  Other implicit args won't be exported.
+    #  If needed, open a Issue on Github.
+    foreach arg: rust_compiler.cmd_array()
+        if arg.startswith(rust_target_opt)
+            implicit_target_rustargs += [arg]
+            target_rust_cross_file = arg.split('=')[1]
+        endif
+    endforeach
+
+    if target_rust_cross_file == ''
+        warning('rustc target is missing from cross file')
+        target_rustargs += ['--target=' + target_rust]
+    elif target_rust_cross_file != target_rust
+        error(
+            'rust target mismatch (@0@ / @1@) check .config and/or cross file'.format(
+                target_rust,
+                target_rust_cross_file
+            )
+        )
+    endif
+endif
 
 target_cflags = [
     '-mcpu=' + target_cpu,
@@ -74,6 +111,7 @@ summary(
     {
         'cflags': target_cflags,
         'rustargs': target_rustargs,
+        'implicit rustargs': implicit_target_rustargs,
     },
     bool_yn: true,
     section: 'Target specific compile args'

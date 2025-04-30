@@ -60,7 +60,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          targets: thumbv8m.main-none-eabi
           components: clippy,rustfmt
       - name: Setup C toolchain
         uses: camelot-os/action-setup-compiler@v1
@@ -79,7 +79,7 @@ jobs:
       - name: Meson Build
         uses: camelot-os/action-meson@v1
         with:
-          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
+          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'cm33-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
           options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts'
       - name: Meson postcheck
