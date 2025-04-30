@@ -29,11 +29,24 @@ jobs:
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest' ]
             toolchain = [ 'gcc|12.3.Rel1', 'gcc|10.3-2021.07', 'gcc|13.2.Rel1', 'gcc|14.2.Rel1' ]
-            config = [ 'nucleo_u5a5_autotest', 'nucleo_wb55_autotest', 'nucleo_u5a5_nooutput', 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release', 'stm32f429i_disc1_autotest' ]
+            config = [
+              { 'name': 'nucleo_u5a5_autotest', 'cpu': 'cm33', 'triple': 'thumbv8m.main-none-eabi' },
+              { 'name': 'nucleo_u5a5_nooutput', 'cpu': 'cm33', 'triple': 'thumbv8m.main-none-eabi' },
+              { 'name': 'nucleo_wb55_autotest', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+              { 'name': 'stm32f429i_disc1_debug', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+              { 'name': 'stm32f429i_disc1_release', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+              { 'name': 'stm32f429i_disc1_autotest', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+            ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
             toolchain = [ 'gcc|13.2.Rel1' ]
-            config = [ 'nucleo_u5a5_autotest', 'nucleo_wb55_autotest', 'stm32f429i_disc1_debug', 'nucleo_l476rg_debug', 'nucleo_f401re' ]
+            config = [
+              { 'name': 'nucleo_u5a5_autotest', 'cpu': 'cm33', 'triple': 'thumbv8m.main-none-eabi' },
+              { 'name': 'nucleo_wb55_autotest', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+              { 'name': 'stm32f429i_disc1_debug', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+              { 'name': 'nucleo_l476rg_debug', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+              { 'name': 'nucleo_f401re', 'cpu': 'cm4', 'triple': 'thumbv7em-none-eabi' },
+            ]
           with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
             gh_out.write(f"operating_system={operating_system}\n")
             gh_out.write(f"toolchain={toolchain}\n")
@@ -99,7 +112,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          targets: ${{ matrix.config.triple }}
           components: clippy,rustfmt
       - name: Setup C toolchain
         uses: camelot-os/action-setup-compiler@v1
@@ -113,13 +126,13 @@ jobs:
           pip install -r requirements.txt
       - name: defconfig
         run: |
-          defconfig configs/${{matrix.config}}_defconfig
+          defconfig configs/${{ matrix.config.name }}_defconfig
       - name: Meson Build
         uses: camelot-os/action-meson@v1
         with:
-          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
+          cross_files: ${{ format('{0}/{1}-none-eabi-gcc.ini', env.MESON_CROSS_FILES, matrix.config.cpu) }}
           actions: '["prefetch", "setup", "compile"]'
-          options: '-Dconfig=.config -Ddts=dts/examples/${{ matrix.config }}.dts -Ddts-include-dirs=dts'
+          options: '-Dconfig=.config -Ddts=dts/examples/${{ matrix.config.name }}.dts -Ddts-include-dirs=dts'
       - name: Meson postcheck
         if: failure()
         run: |
@@ -169,7 +182,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          targets: thumbv7em-none-eabi
           components: clippy,rustfmt
       - name: deploy local deps
         run: |
@@ -180,7 +193,7 @@ jobs:
       - name: Meson Build
         uses: camelot-os/action-meson@v1
         with:
-          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
+          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'cm4-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "test"]'
           options: '-Dconfig=.config -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_tests=true -Db_coverage=false -Doptimization=0'
       - name: Meson postcheck
