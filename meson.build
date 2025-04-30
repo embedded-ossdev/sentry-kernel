@@ -65,23 +65,37 @@ hardening_cflags += [
 ]
 endif
 
-if kconfig_data.get('CONFIG_SECU_ENFORCE_CFI', 0) == 1
-hardening_cflags += [
-  '-fharden-control-flow-redundancy',
-]
-endif
-
-if kconfig_data.get('CONFIG_SECU_ENFORCE_RETURNING_CALLS', 0) == 1
-hardening_cflags += [
-  '-fhardcfr-check-returning-calls',
-]
-endif
 
 foreach cflag: hardening_cflags
   if compiler.has_argument(cflag)
     activated_hardening_cflags += cflag
   endif
 endforeach
+
+# some hardening flags are not compatible with nacked function, making compilation fails
+# this flags are not included at global level but at lib level instead
+activated_lib_hardening_cflags = []
+lib_hardening_cflags = []
+
+if kconfig_data.get('CONFIG_SECU_ENFORCE_CFI', 0) == 1
+lib_hardening_cflags += [
+  '-fharden-control-flow-redundancy',
+]
+endif
+
+if kconfig_data.get('CONFIG_SECU_ENFORCE_RETURNING_CALLS', 0) == 1
+lib_hardening_cflags += [
+  '-fhardcfr-check-returning-calls',
+]
+endif
+
+
+foreach cflag: lib_hardening_cflags
+  if compiler.has_argument(cflag)
+    activated_lib_hardening_cflags += cflag
+  endif
+endforeach
+
 
 external_deps = []
 

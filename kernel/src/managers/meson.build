@@ -36,7 +36,7 @@ sentry_managers_lib = static_library('sentry_managers',
         managers_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
-    c_args: [ target_arch_args, global_build_args ],
+    c_args: [ target_arch_args, global_build_args, activated_lib_hardening_cflags ],
     install: false,
     dependencies: [
         sentry_arch_dep,
