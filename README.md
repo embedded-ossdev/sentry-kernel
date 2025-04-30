@@ -38,7 +38,64 @@ This kernel aims to be fully portable. Its initial target are ARM Cortex-M MCUs 
 Cross-toolchain relative need to be declared so that the `meson` build system is able to detect overall cross-compilers and associated tools. This is
 done by defining `cross-files`. The meson build system describes these cross file [here](https://mesonbuild.com/Cross-compilation.html).
 
-### Project bootstrap
+As this project is using both C and Rust, it is required to set some specific flags in the cross-file(s) you use.
+
+### About the host machine
+
+The host machine is the environment in which the Sentry kernel is executed. This is one of the three standard machines definitions:
+
+   * the build machine is the host in which the complitation is made
+   * the target machine is the compiler-internal environment that is used during compilation step
+   * the host machine is the host in which the compilation result is being executed
+
+This is required to declare the host machine as a `none` type, as there is no runtime bellow Sentry. In the same way, this is not a `bare-metal` system, as this keyword is considered by Rust as
+an environment in which it is possible to link the `std` crate, which is not true as a Sentry application environment by now.
+
+As a consequence, the following fields must be set in the `[host_machine]` block:
+```yaml
+system = 'none'
+kernel = 'none'
+```
+
+### Cross-compilation triples
+
+The usage of C (using gcc) and Rust (using LLVM frontend) requires to specify both the Gcc cross-triple prefix value and the llvm triple.
+This values are set as typical `[constants]` fields, for e.g.:
+
+```yaml
+cross_triple = 'arm-none-eabi'
+# llvm triple, target-explicit, needed by Rust
+llvm_triple = 'thumbv8m.main-none-eabi'
+```
+
+It is then possible to set the gcc toolchain prefix in the very same `[constants]` block with something like:
+
+```yaml
+cross_toolchain = '/path/to/gcc-cross/'
+cross_compile = cross_toolchain + 'bin/' + cross_triple + '-'
+```
+
+These constants can be used in the `[binaries]` declaration block, with the following:
+
+```yaml
+c = cross_compile + 'gcc'
+cpp = cross_compile + 'g++'
+ar = cross_compile + 'gcc-ar'
+ranlib = cross_compile + 'gcc-ranlib'
+strip = cross_compile + 'strip'
+objcopy = cross_compile + 'objcopy'
+rust = ['rustc', '--target=' + llvm_triple]
+```
+
+The Rust linker also needs to be specified to be homogeneous to the C linker (being GNU ld), using the `rust_ld` binary definition:
+
+```yaml
+rust_ld = c
+```
+
+Typical functional meson cross-files can be found [here](https://github.com/camelot-os/meson-cross-files/tree/main).
+
+## Project bootstrap
 
 A common good practice is `do not inject environment variable for build configuration`. For this purpose, `meson` does not allow using relative path in toolchain definition. Toolchain path **_must_** be absolute.
 
