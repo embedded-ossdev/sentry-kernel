@@ -91,10 +91,12 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
 impl SentryExchangeable for crate::systypes::ShmHandle {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
-        // Miri fix: Data in EXCHANGE_AREA must be aligned to ShmHandle
-        let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to::<u32>() };
+        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA.align_to::<u32>() };
+        // Let's check that the prefix is empty, if not -> Critical error
+        if !prefix.is_empty() {
+            return Err(Status::Critical);
+        }
 
-        // Il faut au moins 1 élément u32
         let first = aligned.first().ok_or(Status::Invalid)?;
 
         unsafe {
@@ -106,8 +108,11 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
     #[cfg(test)]
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status, Status> {
-        // Miri fix: Data in EXCHANGE_AREA must be aligned to ShmHandle
-        let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to_mut::<u32>() };
+        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA.align_to_mut::<u32>() };
+        // Let's check that the prefix is empty, if not -> Critical error
+        if !prefix.is_empty() {
+            return Err(Status::Critical);
+        }
 
         let slot = aligned.first_mut().ok_or(Status::Invalid)?;
 
@@ -124,9 +129,6 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
 
 // from-exchange related capacity to Exchange header
 impl ExchangeHeader {
-    //unsafe fn from_addr(self, address: usize) -> &'static Self {
-    //unsafe { &*(address as *const Self) }
-    // Miri fix: the code above do not garantee the alignment, proposing this:
     /// # Safety
     /// We check that the address is aligned to the size of the type
     unsafe fn from_addr() -> Option<&'static Self> {
@@ -136,14 +138,13 @@ impl ExchangeHeader {
 
     #[cfg(test)]
     unsafe fn from_addr_mut(self) -> &'static mut Self {
-        //unsafe { &mut *(address as *mut Self) }
-        // Miri fix: the code above do not garantee the alignment, proposing this:
         let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to_mut::<Self>() };
         // .expect gives a explicite context if the exchange area is too small or misaligned
         aligned
             .first_mut()
             .expect("Exchange area too small or misaligned")
     }
+
     //pub unsafe fn from_exchange(self) -> &'static Self {
     //    unsafe { self.from_addr(EXCHANGE_AREA.as_ptr() as usize) }
     /// # Safety
@@ -267,7 +268,6 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
 
         unsafe {
             // Writing the header
-            // The header is not aligned, so we use write_unaligned
             ptr::write_unaligned(
                 EXCHANGE_AREA.as_mut_ptr() as *mut ExchangeHeader,
                 self.header,
@@ -391,7 +391,7 @@ mod tests {
     #[test]
     fn back_to_back_shmhandle() {
         let src = 0x42;
-        let mut dst = 0x4;
+        let mut dst = 0x43;
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
         assert_eq!(Some(src), Some(dst));
