@@ -12,6 +12,6 @@ option('config', type: 'string', description: 'Configuration file to use', yield
 option('dts', type: 'string', description: 'Top level DTS file', yield: true)
 option('dts-include-dirs', type: 'array', value: ['dts'], yield: true,
        description: 'Directories to add to resolution path for dtsi inclusion')
-option('rust-channel', type: 'string', value: '1.82.0', description: 'rustup channel to use for Rust toolchain')
+option('rust-channel', type: 'string', value: '1.86.0', description: 'rustup channel to use for Rust toolchain')
 option('cargo-registry', type: 'string', description: 'cargo local registry')
 option('with-install-crates', type: 'boolean', value: false, description: 'install crate(s) to specified registry')
