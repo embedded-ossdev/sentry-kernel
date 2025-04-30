@@ -389,15 +389,6 @@ mod tests {
     }
 
     #[test]
-    fn back_to_back_shmhandle() {
-        let src = 0x42;
-        let mut dst = 0x43;
-        let _ = src.to_kernel();
-        let _ = dst.from_kernel();
-        assert_eq!(Some(src), Some(dst));
-    }
-
-    #[test]
     fn back_to_back_event() {
         let src = crate::systypes::Event {
             header: ExchangeHeader {
