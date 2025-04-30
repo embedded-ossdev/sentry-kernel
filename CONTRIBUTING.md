@@ -25,7 +25,7 @@ collaboratibe methods for submissions.
 * Sentry kernel development workflow is supported on Linux, macOS, and Windows.
 
 * Source code for the project is maintained in the GitHub repo:
-  https://github.com/outpost-os/sentry-kernel
+  https://github.com/camelot-os/sentry-kernel
 
 * Issues, features and security tracking is done with Github issues, pull-requests and security reports.
   Milestones are used in order to define a clearer roadmap.

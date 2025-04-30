@@ -9,9 +9,9 @@ SPDX-License-Identifier: Apache-2.0
 [![Documentation Status](https://readthedocs.org/projects/outpost-sentry/badge/?version=latest)](https://outpost-sentry.readthedocs.io/en/latest/?badge=latest)
 ![GitHub Release](https://img.shields.io/github/v/release/outpost-os/sentry-kernel)
 ![GitHub License](https://img.shields.io/github/license/outpost-os/sentry-kernel)
-[![REUSE status](https://api.reuse.software/badge/github.com/outpost-os/sentry-kernel)](https://api.reuse.software/info/github.com/outpost-os/sentry-kernel)
+[![REUSE status](https://api.reuse.software/badge/github.com/camelot-os/sentry-kernel)](https://api.reuse.software/info/github.com/camelot-os/sentry-kernel)
 
-sentry-uapi is the user API library that delivers a full access to the [Outpost-OS](https://github.com/outpost-os) Sentry kernel interface.
+sentry-uapi is the user API library that delivers a full access to the [Outpost-OS](https://github.com/camelot-os) Sentry kernel interface.
 
 This crate implement the low level interface to the Sentry kernel syscalls and associated system types:
 

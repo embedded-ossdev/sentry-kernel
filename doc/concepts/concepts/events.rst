@@ -342,7 +342,7 @@ device for which at least one interrupt has been defined in the device tree.
 
 
 While the current SoC dtsi file, delivered in the
-`outpost-devicetree <https://github.com/outpost-os/outpost-devicetree>`_
+`outpost-devicetree <https://github.com/camelot-os/outpost-devicetree>`_
 repository is clean for the device, there is no need to add interrupt related information,
 as interrupt assignations is already defined. As a xonsequence, only the device activation
 (using the `status = "okay";` standard attribute) is enough.

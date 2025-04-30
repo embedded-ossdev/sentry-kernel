@@ -47,8 +47,8 @@ jobs:
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
-          ref:  'using-local-dirs'
-          repository: 'outpost-os/meson-cross-files'
+          ref:  'main'
+          repository: 'camelot-os/meson-cross-files'
           path: crossfiles
       - name: Deploy cross-files
         run: |
@@ -63,7 +63,7 @@ jobs:
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: Setup C toolchain
-        uses: outpost-os/action-setup-compiler@v1
+        uses: camelot-os/action-setup-compiler@v1
         with:
           compiler: gcc
           triple: arm-none-eabi
@@ -77,7 +77,7 @@ jobs:
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
-        uses: outpost-os/action-meson@v1
+        uses: camelot-os/action-meson@v1
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
