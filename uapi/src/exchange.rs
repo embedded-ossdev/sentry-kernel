@@ -15,6 +15,11 @@ const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
 #[unsafe(link_section = ".svcexchange")]
 static mut EXCHANGE_AREA: [u8; EXCHANGE_AREA_LEN] = [0u8; EXCHANGE_AREA_LEN];
 
+#[repr(align(4))]
+pub struct ExchangeAligned(pub [u8; 128]);
+#[unsafe(no_mangle)]
+pub static mut EXCHANGE_AREA_TEST: ExchangeAligned = ExchangeAligned([0u8; 128]);
+
 /// Trait of kernel-user exchangeable objects
 ///
 /// This trait written in order to support the notion of "kernel-exchangeable"
@@ -91,7 +96,7 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
 impl SentryExchangeable for crate::systypes::ShmHandle {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
-        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA.align_to::<u32>() };
+        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA_TEST.0.align_to::<u32>() };
         // Let's check that the prefix is empty, if not -> Critical error
         if !prefix.is_empty() {
             return Err(Status::Critical);
@@ -108,7 +113,7 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
     #[cfg(test)]
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status, Status> {
-        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA.align_to_mut::<u32>() };
+        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA_TEST.0.align_to_mut::<u32>() };
         // Let's check that the prefix is empty, if not -> Critical error
         if !prefix.is_empty() {
             return Err(Status::Critical);
@@ -139,7 +144,7 @@ impl ExchangeHeader {
     #[cfg(test)]
     unsafe fn from_addr_mut(self) -> &'static mut Self {
         let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to_mut::<Self>() };
-        // .expect gives a explicite context if the exchange area is too small or misaligned
+        // .expect gives a explicit context if the exchange area is too small or misaligned
         aligned
             .first_mut()
             .expect("Exchange area too small or misaligned")
@@ -385,6 +390,18 @@ mod tests {
         };
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
+        assert_eq!(src, dst);
+    }
+
+    #[test]
+    fn back_to_back_shmhandle() {
+        let src: ShmHandle = 33;
+        let mut dst: ShmHandle = 0;
+        // If not test to_kernel() must return Err(Status::Invalid)
+        let res1 = src.to_kernel();
+        let res2 = dst.from_kernel();
+        assert_eq!(res1, Ok(Status::Ok));
+        assert_eq!(res2, Ok(Status::Ok));
         assert_eq!(src, dst);
     }
 
