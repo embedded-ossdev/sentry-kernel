@@ -62,7 +62,7 @@ pub mod ffi_c;
 /// if unsafe is used, there is no UB risk when manipulating the exchange area
 /// based on the Operating System architecture.
 ///
-pub mod exchange;
+mod exchange;
 
 /// Sentry kernel low level syscall implementation
 ///
@@ -112,6 +112,9 @@ pub use self::exchange::copy_to_kernel;
 /// This trait is declared in order to allow the attribute checking but is not
 /// exported as no upper layer type needs to implement it
 pub use self::exchange::SentryExchangeable;
+
+/// Re-export Sentry uapi length fonction for Kani tests
+pub use self::exchange::length;
 
 #[cfg(not(feature = "std"))]
 mod panic;
