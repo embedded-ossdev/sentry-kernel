@@ -62,7 +62,7 @@ pub mod ffi_c;
 /// if unsafe is used, there is no UB risk when manipulating the exchange area
 /// based on the Operating System architecture.
 ///
-mod exchange;
+pub mod exchange;
 
 /// Sentry kernel low level syscall implementation
 ///
