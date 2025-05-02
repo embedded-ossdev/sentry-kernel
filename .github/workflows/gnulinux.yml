@@ -207,8 +207,10 @@ jobs:
           toolchain: nightly
           components: miri
       - name: Prepare Miri
+        working-directory: ./uapi
         run: cargo miri setup
       - name: Run Miri tests
+        working-directory: ./uapi
         run: |
           export MIRI_FLAGS="-Zmiri-strict-provenance -Zmiri-track-raw-pointers"
           cargo miri test
