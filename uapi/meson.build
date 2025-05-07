@@ -22,7 +22,7 @@ global_rust_build_args = [
     '-C', 'lto=true', '-C', 'relocation-model=pic', '-C', 'link-args=--emit-relocs'
 ]
 
-rust_edition = '2021'
+rust_edition = '2024'
 uapi_rust_std = 'rust_std=' + rust_edition
 uapi_manifest = files('Cargo.toml')
 

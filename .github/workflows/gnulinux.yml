@@ -111,9 +111,9 @@ jobs:
           echo "compiler=$toolchain_compiler" >> $GITHUB_ENV
           echo "compiler_version=$toolchain_version" >> $GITHUB_ENV
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
+          toolchain: stable
           targets: ${{ matrix.config.triple }}
           components: clippy,rustfmt
       - name: Setup C toolchain
@@ -181,10 +181,10 @@ jobs:
           ref: '12.3.Rel1'
           workspace: $GITHUB_WORKSPACE
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
-          targets: thumbv7em-none-eabi
+          toolchain: stable
+          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: deploy local deps
         run: |
@@ -203,7 +203,19 @@ jobs:
         run: |
           cat builddir/meson-logs/meson-log.txt
           cat builddir/meson-logs/testlog.txt
-
+      - name: Setup Miri (Rust nightly)
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: miri
+      - name: Prepare Miri
+        working-directory: ./uapi
+        run: cargo miri setup
+      - name: Run Miri tests
+        working-directory: ./uapi
+        run: |
+          export MIRI_FLAGS="-Zmiri-strict-provenance -Zmiri-track-raw-pointers"
+          cargo miri test
   doc:
     needs: [ build ]
     defaults:
@@ -238,9 +250,9 @@ jobs:
         with:
           packages: 'pandoc,dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
+          toolchain: stable
       - name: deploy local deps
         run: |
           pip install -r requirements.txt

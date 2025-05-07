@@ -141,6 +141,7 @@ The Sentry kernel has the following configuration options, that can be added at 
    * `with_uapi` (boolean, true): Enable kernel UAPI library build
    * `with_idle` (boolean, true): Enable kernel Idle task build
    * `with_tools` (boolean, true): Enable build host native tooling build
+   * `rust-channel` (string): Set the rust channel. Minimal version required is 1.86.
    * `config`: (string): path to the defconfig file. Can be externally provided, while respecting the kernel Kconfig
    * `dts` (string): DTS file path, may be local or any externaly provided DTS file
    * `dts-include-dirs` (array): DTS file include dir for dtsi resolution, depending on the DTS file content

@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2025 ANSSI
 # SPDX-License-Identifier: Apache-2.0
 
 [package]
 name = "sentry-uapi"
-version = "0.4.1"
-edition = "2021"
+version = "0.4.2"
+edition = "2024"
 license = "Apache-2.0"
 description = "Sentry kernel user API implementation"
 categories = ["os", "no-std"]
@@ -20,3 +21,9 @@ std = []
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(CONFIG_BUILD_TARGET_AUTOTEST)'] }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"

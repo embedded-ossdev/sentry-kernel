@@ -113,5 +113,8 @@ pub use self::exchange::copy_to_kernel;
 /// exported as no upper layer type needs to implement it
 pub use self::exchange::SentryExchangeable;
 
+/// Re-export Sentry uapi length fonction for Kani tests
+pub use self::exchange::length;
+
 #[cfg(not(feature = "std"))]
 mod panic;

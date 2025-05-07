@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-FileCopyrightText: 2025 ANSSI
 // SPDX-License-Identifier: Apache-2.0
 
 #![allow(static_mut_refs)]
@@ -13,6 +14,11 @@ const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
 ///
 #[unsafe(link_section = ".svcexchange")]
 static mut EXCHANGE_AREA: [u8; EXCHANGE_AREA_LEN] = [0u8; EXCHANGE_AREA_LEN];
+
+#[repr(align(4))]
+pub struct ExchangeAligned(pub [u8; 128]);
+#[unsafe(no_mangle)]
+pub static mut EXCHANGE_AREA_TEST: ExchangeAligned = ExchangeAligned([0u8; 128]);
 
 /// Trait of kernel-user exchangeable objects
 ///
@@ -90,12 +96,16 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
 impl SentryExchangeable for crate::systypes::ShmHandle {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
+        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA_TEST.0.align_to::<u32>() };
+        // Let's check that the prefix is empty, if not -> Critical error
+        if !prefix.is_empty() {
+            return Err(Status::Critical);
+        }
+
+        let first = aligned.first().ok_or(Status::Invalid)?;
+
         unsafe {
-            core::ptr::copy_nonoverlapping(
-                EXCHANGE_AREA.as_ptr() as *const u32,
-                &raw mut *self,
-                core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
-            );
+            core::ptr::copy_nonoverlapping(first, self as *mut ShmHandle, 1);
         }
         Ok(Status::Ok)
     }
@@ -103,13 +113,15 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
     #[cfg(test)]
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status, Status> {
-        unsafe {
-            core::ptr::copy_nonoverlapping(
-                addr_of!(*self) as *const u8,
-                EXCHANGE_AREA.as_mut_ptr(),
-                core::mem::size_of::<ShmHandle>().min(EXCHANGE_AREA_LEN),
-            );
+        let (prefix, aligned, _) = unsafe { EXCHANGE_AREA_TEST.0.align_to_mut::<u32>() };
+        // Let's check that the prefix is empty, if not -> Critical error
+        if !prefix.is_empty() {
+            return Err(Status::Critical);
         }
+
+        let slot = aligned.first_mut().ok_or(Status::Invalid)?;
+
+        *slot = *self;
         Ok(Status::Ok)
     }
 
@@ -120,25 +132,39 @@ impl SentryExchangeable for crate::systypes::ShmHandle {
     }
 }
 
-// from-exchange related capacity to Exchang header
+// from-exchange related capacity to Exchange header
 impl ExchangeHeader {
-    unsafe fn from_addr(self, address: usize) -> &'static Self {
-        &*(address as *const Self)
+    /// # Safety
+    /// We check that the address is aligned to the size of the type
+    unsafe fn from_addr() -> Option<&'static Self> {
+        let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to::<Self>() };
+        aligned.first()
     }
 
     #[cfg(test)]
-    unsafe fn from_addr_mut(self, address: usize) -> &'static mut Self {
-        &mut *(address as *mut Self)
+    unsafe fn from_addr_mut(self) -> &'static mut Self {
+        let (_, aligned, _) = unsafe { EXCHANGE_AREA.align_to_mut::<Self>() };
+        // .expect gives a explicit context if the exchange area is too small or misaligned
+        aligned
+            .first_mut()
+            .expect("Exchange area too small or misaligned")
     }
+
+    //pub unsafe fn from_exchange(self) -> &'static Self {
+    //    unsafe { self.from_addr(EXCHANGE_AREA.as_ptr() as usize) }
     /// # Safety
-    /// To be documented
-    pub unsafe fn from_exchange(self) -> &'static Self {
-        self.from_addr(EXCHANGE_AREA.as_ptr() as usize)
+    /// - `EXCHANGE_AREA` must be correctly aligned for `ExchangeHeader`.
+    /// - `EXCHANGE_AREA` must be large enough to contain a full `ExchangeHeader`.
+    /// - The contents of `EXCHANGE_AREA` must be properly initialized for reading as an `ExchangeHeader`.
+    ///
+    /// Violating any of these conditions may lead to undefined behavior.
+    pub unsafe fn from_exchange(self) -> Option<&'static Self> {
+        unsafe { Self::from_addr() }
     }
 
     #[cfg(test)]
     pub unsafe fn from_exchange_mut(self) -> &'static mut Self {
-        self.from_addr_mut(EXCHANGE_AREA.as_mut_ptr() as usize)
+        unsafe { self.from_addr_mut() }
     }
 }
 
@@ -187,37 +213,36 @@ impl ExchangeHeader {
 impl SentryExchangeable for crate::systypes::Event<'_> {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
-        // declare exchange as header first
-        let k_header: &ExchangeHeader = unsafe { ExchangeHeader::from_exchange(self.header) };
-        if !k_header.is_valid() {
+        use core::ptr;
+
+        unsafe {
+            // Read the header from the exchange area
+            // If the header is not aligned, it will be a bit slower
+            // but it will not crash anyway.
+            let header = ptr::read_unaligned(EXCHANGE_AREA.as_ptr() as *const ExchangeHeader);
+            self.header = header;
+        }
+
+        if !self.header.is_valid() {
             return Err(Status::Invalid);
         }
-        self.header = *k_header;
+
         let header_len = core::mem::size_of::<ExchangeHeader>();
-        // be sure we have enough size in exchange zone
         if header_len + usize::from(self.header.length) > EXCHANGE_AREA_LEN {
             return Err(Status::Invalid);
         }
-        if usize::from(self.header.length) > EXCHANGE_AREA_LEN - header_len {
-            // the length field is set by the kernel and thus, should not be invalid
-            // yet we check that there is no overflow as we use an unsafe block to get
-            // back from the exchange area
-            return Err(Status::Invalid);
-        }
-        // copy the amount of data in data slice using the header length info.
-        // Note: here we do not do any semantic related content check (i.e. data length or content
-        // based on the exchange type) but we let the kernel ensuring the correlation instead.
+
         unsafe {
-            let data_ptr: *const u8 = (EXCHANGE_AREA.as_ptr() as usize + header_len) as *const u8;
+            let data_ptr = EXCHANGE_AREA.as_ptr().add(header_len);
             let data_slice = core::slice::from_raw_parts(data_ptr, self.header.length.into());
-            // the destination slice must have enough space to get back data from the exchange zone
             if data_slice.len() > self.data.len() {
                 return Err(Status::Invalid);
             }
             for (dst, src) in self.data.iter_mut().zip(data_slice.iter()) {
-                *dst = *src
+                *dst = *src;
             }
         }
+
         Ok(Status::Ok)
     }
 
@@ -240,28 +265,26 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
     #[cfg(test)]
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status, Status> {
-        // copy exchange header to exhcange zone
-        let k_header: &mut ExchangeHeader =
-            unsafe { ExchangeHeader::from_exchange_mut(self.header) };
-        let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
-        k_header.peer = self.header.peer;
-        k_header.magic = self.header.magic;
-        k_header.length = self.header.length;
-        k_header.event = self.header.event;
-        // now append data to header in exchange zone
+        use core::ptr;
+
         if usize::from(self.header.length) > self.data.len() {
             return Err(Status::Invalid);
         }
+
         unsafe {
-            let data_addr = EXCHANGE_AREA.as_ptr() as usize + header_len;
-            let data_ptr =
-                data_addr as *mut [u8; EXCHANGE_AREA_LEN - core::mem::size_of::<ExchangeHeader>()];
-            core::ptr::copy_nonoverlapping(
-                self.data.as_ptr(),
-                data_ptr as *mut u8,
-                self.header.length.into(),
+            // Writing the header
+            ptr::write_unaligned(
+                EXCHANGE_AREA.as_mut_ptr() as *mut ExchangeHeader,
+                self.header,
             );
+
+            // Then writing the data
+            let header_len = core::mem::size_of::<ExchangeHeader>();
+            let data_addr = EXCHANGE_AREA.as_mut_ptr().add(header_len);
+            let dst_slice = core::slice::from_raw_parts_mut(data_addr, self.header.length.into());
+            dst_slice.copy_from_slice(&self.data[..self.header.length.into()]);
         }
+
         Ok(Status::Ok)
     }
 }
@@ -372,10 +395,13 @@ mod tests {
 
     #[test]
     fn back_to_back_shmhandle() {
-        let src = 2;
-        let mut dst = 2;
-        let _ = src.to_kernel();
-        let _ = dst.from_kernel();
+        let src: ShmHandle = 33;
+        let mut dst: ShmHandle = 0;
+        // If not test to_kernel() must return Err(Status::Invalid)
+        let res1 = src.to_kernel();
+        let res2 = dst.from_kernel();
+        assert_eq!(res1, Ok(Status::Ok));
+        assert_eq!(res2, Ok(Status::Ok));
         assert_eq!(src, dst);
     }
 
@@ -399,6 +425,7 @@ mod tests {
             },
             data: &mut [0; 12],
         };
+
         assert_eq!(src.to_kernel(), Ok(Status::Ok));
         assert_eq!(dst.from_kernel(), Ok(Status::Ok));
         assert_eq!(src.header, dst.header);
