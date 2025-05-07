@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Ledger SAS
+# SPDX-FileCopyrightText: 2025 H2Lab OSS Team
 # SPDX-License-Identifier: Apache-2.0
 
 name: Sentry kernel build on Windows
@@ -72,7 +72,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          targets: thumbv8m.main-none-eabi
           components: clippy,rustfmt
       - name: Setup C toolchain
         uses: outpost-os/action-setup-compiler@v1
@@ -81,10 +81,12 @@ jobs:
           triple: arm-none-eabi
           ref: 13.2.Rel1
           workspace: $GITHUB_WORKSPACE
+       # using older setuptools, see https://github.com/sass/libsass-python/issues/468
       - name: deploy local deps
         run: |
           pip config set global.break-system-packages true
-          pip install meson~=1.4.0 kconfiglib~=14.1.0 svd2json>=0.1.6 dts-utils>=0.3.0 jinja-cli GitPython>=3.1.0
+          pip install "setuptools<74"
+          pip install -r requirements.txt
         shell: msys2 {0}
       - name: defconfig
         run: |
