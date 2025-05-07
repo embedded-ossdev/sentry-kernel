@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2025 H2Lab
 # SPDX-License-Identifier: Apache-2.0
 
 kernel_eva_entypoint = files(
@@ -12,7 +13,7 @@ framac_stub_entrypoint_elf = executable(
     name_suffix: 'elf',
     sources: [ kernel_eva_entypoint, kernel_entrypoint, framac_dep ],
     include_directories: kernel_inc,
-    dependencies: [ external_deps],
+    dependencies: [ external_deps, proof_lib_dep ],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,

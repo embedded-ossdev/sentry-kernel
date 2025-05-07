@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <sentry/arch/asm-generic/platform.h>
+#include <framac_entropy.h>
 #include <sentry/managers/io.h>
 #include <sentry/managers/debug.h>
 #include <sentry/managers/clock.h>
@@ -14,7 +15,8 @@
 
 #include <stdbool.h>
 
-#include "../framac_tooling.h"
+/* forge fully randomized frame content */
+static volatile stack_frame_t frame __attribute__((FRAMA_C_MODEL));
 
 void handler_entrypoint(void)
 {

@@ -5,10 +5,12 @@
 #include <sentry/sched.h>
 #include <sentry/managers/time.h>
 #include <sentry/managers/task.h>
+#include <framac_entropy.h>
 
 #include <stdbool.h>
 
-#include "../framac_tooling.h"
+/* forge fully randomized frame content */
+static volatile stack_frame_t frame __attribute__((FRAMA_C_MODEL));
 
 void handler_entrypoint(void)
 {

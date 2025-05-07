@@ -17,7 +17,7 @@ framac_stub_elf = executable(
     name_suffix: 'elf',
     sources: [ frama_c_eva_norte_svc_entrypoint, framac_dep ],
     include_directories: kernel_inc,
-    dependencies: [ external_deps],
+    dependencies: [ external_deps, proof_lib_dep ],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,
