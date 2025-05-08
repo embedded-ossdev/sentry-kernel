@@ -3,8 +3,8 @@
 
 #include <inttypes.h>
 #include <string.h>
-#include <testlib/log.h>
-#include <testlib/assert.h>
+#include <test_log.h>
+#include <test_assert.h>
 #include <uapi/uapi.h>
 #include <uapi/dma.h>
 #include <shms-dt.h>

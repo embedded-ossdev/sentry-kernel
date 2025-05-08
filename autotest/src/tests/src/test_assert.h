@@ -18,7 +18,7 @@ extern "C" {
  */
 
 #include <stdio.h>
-#include <testlib/log.h>
+#include <test_log.h>
 
 #define __IN_RANGE(x, m, M) (((x) >= m) && ((x) <= M))
 

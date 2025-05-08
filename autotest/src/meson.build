@@ -17,9 +17,5 @@ autotest_sourceset.add(
 subdir('arch')
 subdir('drivers')
 
-if kconfig_data.get('CONFIG_AUTOTEST_TESTLIB_C', 0) == 1
 # autotest library, in C
 subdir('tests')
-else
-subdir('tests-rs')
-endif
