@@ -4,6 +4,7 @@
 # note: to avoid printf implementation redundancy, the kernel lexer for debug
 # print mode is used as-is
 
+# autotest entrypoint and basic utilities
 autotest_sourceset.add(
     files(
         'main.c',
@@ -15,4 +16,6 @@ autotest_sourceset.add(
 
 subdir('arch')
 subdir('drivers')
+
+# autotest library, in C
 subdir('tests')

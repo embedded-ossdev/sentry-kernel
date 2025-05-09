@@ -8,19 +8,18 @@
 #include <string.h>
 #include <inttypes.h>
 #include <uapi/uapi.h>
-#include <testlib/assert.h>
-#include "tests/test_sleep.h"
-#include "tests/test_cycles.h"
-#include "tests/test_yield.h"
-#include "tests/test_random.h"
-#include "tests/test_ipc.h"
-#include "tests/test_handle.h"
-#include "tests/test_signal.h"
-#include "tests/test_gpio.h"
-#include "tests/test_map.h"
-#include "tests/test_shm.h"
-#include "tests/test_dma.h"
-#include "tests/test_irq.h"
+#include <test_cycles.h>
+#include <test_sleep.h>
+#include <test_yield.h>
+#include <test_random.h>
+#include <test_ipc.h>
+#include <test_handle.h>
+#include <test_signal.h>
+#include <test_gpio.h>
+#include <test_map.h>
+#include <test_shm.h>
+#include <test_dma.h>
+#include <test_irq.h>
 
 uint32_t __stack_chk_guard = 0;
 
@@ -45,7 +44,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
 
     printf(welcommsg);
     printf(testmsg);
-    LOG("AUTOTEST START");
+    printf("AUTOTEST START");
 #ifdef CONFIG_TEST_YIELD
     test_yield();
 #endif
@@ -82,7 +81,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
 #ifdef CONFIG_TEST_IRQ
     test_irq();
 #endif
-    LOG("AUTOTEST END");
+    printf("AUTOTEST END");
 
 
     /* all tests finished, leaving */

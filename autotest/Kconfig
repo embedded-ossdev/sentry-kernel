@@ -5,6 +5,18 @@ if BUILD_TARGET_AUTOTEST
 
 menu "Autotest configuration"
 
+choice
+    bool "Test library implementation"
+    default AUTOTEST_TESTLIB_C
+
+    config AUTOTEST_TESTLIB_C
+    bool "C11 test library using the FFI-C UAPI interface"
+
+    config AUTOTEST_TESTLIB_RUST
+    bool "Rust test library using the native Rust UAPI interface"
+
+endchoice
+
 config AUTOTEST_TIMER_DRIVER
     bool
     default n
