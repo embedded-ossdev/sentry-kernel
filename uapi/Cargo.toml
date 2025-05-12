@@ -10,6 +10,9 @@ license = "Apache-2.0"
 description = "Sentry kernel user API implementation"
 categories = ["os", "no-std"]
 repository = "https://github.com/camelot-os/sentry-kernel"
+exclude = [
+    "/tests",
+]
 
 [dependencies]
 
@@ -28,7 +31,3 @@ opt-level = "z"
 lto = "fat"
 codegen-units = 1
 panic = "abort"
-
-exclude = [
-    "/tests",
-]
