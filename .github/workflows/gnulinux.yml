@@ -225,7 +225,7 @@ jobs:
         run: |
           cargo install --locked kani-verifier
           cargo kani setup
-      - name: Run Miri tests
+      - name: Run Kani tests
         working-directory: ./uapi
         run: |
           cargo kani --tests
