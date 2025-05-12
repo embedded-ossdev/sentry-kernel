@@ -179,7 +179,7 @@ services, etc. except the kernel entrypoint.
 
 **INFO**: the Frama-C framework used is Cobalt (27), with why3 and cvc4. Meson check that they are installed on the system.
 
-Frama-C targetts are hosted in the `proof` directory and are activable using
+Frama-C targets are hosted in the `proof` directory and are activable using
 the `with_proof` option:
 
 ```console
@@ -210,6 +210,8 @@ sentry-kernel:proof / frama-c-eva-zlib-redalarm
 
 Each Frama-C execution is stored in a dedicated build directory that hold all usual files such as session file, red alarms, flamgraph and so on,
 that allows various post-processing, such as results analysis or Frama-C tools usage such as `ivette` or `frama-c-gui`.
+
+**Rust UAPI**: As tools like Creusot do not support unsafe, Rust user api proofs are built using Kani model checker.
 
 ## tests
 
