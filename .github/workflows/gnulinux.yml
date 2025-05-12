@@ -230,7 +230,6 @@ jobs:
         working-directory: ./uapi
         run: |
           cargo kani --tests
-cargo kani setup
   doc:
     needs: [ build ]
     defaults:
