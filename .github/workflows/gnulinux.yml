@@ -216,6 +216,19 @@ jobs:
         run: |
           export MIRI_FLAGS="-Zmiri-strict-provenance -Zmiri-track-raw-pointers"
           cargo miri test
+      - name: Setup Kani (Rust nightly)
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+      - name: Prepare & setup Kani
+        working-directory: ./uapi
+        run: |
+          cargo install --locked kani-verifier
+          cargo kani setup
+      - name: Run Kani tests
+        working-directory: ./uapi
+        run: |
+          cargo kani --tests
   doc:
     needs: [ build ]
     defaults:
