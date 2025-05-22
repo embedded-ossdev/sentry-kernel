@@ -237,6 +237,7 @@ config ARCH_SOCNAME
 	default "STM32U5A9" if ARCH_MCU_STM32U5A9
 	default "STM32U5FX" if ARCH_MCU_STM32U5FX
 	default "STM32U5GX" if ARCH_MCU_STM32U5GX
+	default "STM32H573" if ARCH_MCU_STM32H573
 
 # User-accessible selectors
 
@@ -283,6 +284,10 @@ config ARCH_MCU_STM32U5A5
 config ARCH_MCU_STM32U5A9
 	bool "STM32U5A9"
 	select SOC_SUBFAMILY_STM32U59_Ax
+
+config ARCH_MCU_STM32H573
+	bool "STM32H573"
+	select SOC_SUBFAMILY_STM32U5
 
 endchoice
 
